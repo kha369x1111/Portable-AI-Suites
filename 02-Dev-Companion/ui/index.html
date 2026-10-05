@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevCompanion — رفيق المبرمج المحترف</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>">
+<style>
+:root{
+  --accent:#3fb950;
+  --accent-soft:#3fb95022;
+  --bg:#0d1117; --bg2:#111823; --bg3:#161f2e;
+  --panel:#0f1622; --border:#1f2a3a; --border2:#2b3a50;
+  --text:#e8eef7; --muted:#8b9bb4; --muted2:#5f7189;
+  --user-bubble:#3fb9501f; --code-bg:#0a0e14;
+  --ok:#3ddc84; --err:#ff6b6b; --warn:#ffb454;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Segoe UI","Tahoma","Noto Naskh Arabic","Helvetica Neue",Arial,sans-serif;
+  background:var(--bg); color:var(--text); overflow:hidden;
+  background-image:radial-gradient(1200px 600px at 85% -10%, #3fb95014, transparent 60%),
+                   radial-gradient(900px 500px at 0% 110%, #1c2a4422, transparent 60%);
+}
+#app{display:flex; height:100vh; width:100%}
+
+/* ---------- Sidebar ---------- */
+#sidebar{
+  width:270px; min-width:270px; background:var(--panel); border-left:1px solid var(--border);
+  display:flex; flex-direction:column; transition:margin .25s ease;
+}
+#sidebar.hidden{margin-right:-270px}
+.side-head{padding:18px 16px 12px; border-bottom:1px solid var(--border)}
+.brand{display:flex; align-items:center; gap:10px}
+.brand .logo{width:38px;height:38px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid var(--accent)44}
+.brand h1{font-size:15px; font-weight:700}
+.brand small{color:var(--muted); font-size:11px; display:block}
+#newchat{
+  margin:12px 14px 6px; padding:10px; border-radius:10px; border:1px solid var(--accent)55;
+  background:var(--accent-soft); color:var(--text); font-weight:600; font-size:13px;
+  cursor:pointer; font-family:inherit;
+}
+#newchat:hover{background:var(--accent)33}
+.side-label{padding:10px 18px 4px; color:var(--muted2); font-size:11px; letter-spacing:.5px}
+#chatlist{flex:1; overflow-y:auto; padding:4px 8px}
+.chat-item{padding:9px 12px; border-radius:9px; cursor:pointer; font-size:13px; color:var(--muted);
+  display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:2px}
+.chat-item:hover{background:var(--bg3); color:var(--text)}
+.chat-item.active{background:var(--bg3); color:var(--text); border:1px solid var(--border2)}
+.chat-item .t{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1}
+.chat-item .x{opacity:0; border:none; background:none; color:var(--muted2); cursor:pointer; font-size:14px}
+.chat-item:hover .x{opacity:1}
+.side-foot{padding:12px 16px; border-top:1px solid var(--border); color:var(--muted2); font-size:10.5px; line-height:1.7}
+.offline-note{color:var(--muted); font-size:11px; padding:8px 16px 0; display:none}
+.offline-note a{color:var(--accent); text-decoration:none}
+
+/* ---------- Main ---------- */
+main{flex:1; display:flex; flex-direction:column; min-width:0}
+header{
+  display:flex; align-items:center; gap:12px; padding:12px 18px;
+  border-bottom:1px solid var(--border); background:#0d1117cc; backdrop-filter:blur(6px);
+}
+#burger{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;display:none}
+.h-title{font-weight:700; font-size:15px}
+.h-sub{color:var(--muted2); font-size:11px}
+.spacer{flex:1}
+#statusbox{display:flex; align-items:center; gap:8px; background:var(--bg3); padding:6px 12px;
+  border-radius:99px; border:1px solid var(--border2); font-size:12px; color:var(--muted); cursor:pointer}
+#statusdot{width:9px;height:9px;border-radius:50%;background:var(--err); box-shadow:0 0 8px transparent}
+#statusdot.ok{background:var(--ok); box-shadow:0 0 8px var(--ok)}
+#modelname{max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; direction:ltr}
+.iconbtn{background:var(--bg3); border:1px solid var(--border2); color:var(--muted); width:34px;height:34px;
+  border-radius:9px; cursor:pointer; font-size:15px}
+.iconbtn:hover{color:var(--text); border-color:var(--accent)66}
+
+#workspace{flex:1; display:flex; min-height:0}
+
+/* ---------- Tools panel ---------- */
+#tools{
+  width:300px; min-width:300px; border-left:1px solid var(--border); background:var(--panel);
+  display:none; flex-direction:column; overflow:hidden;
+}
+#tools.open{display:flex}
+.tools-head{padding:14px 16px 8px; font-weight:700; font-size:13.5px; display:flex; justify-content:space-between; align-items:center}
+.tools-head button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px}
+.tools-body{flex:1; overflow-y:auto; padding:0 12px 12px}
+.tool-note{color:var(--muted2); font-size:11px; line-height:1.8; padding:4px 4px 10px}
+#docinput{display:none}
+.addbtn{width:100%; padding:10px; margin:2px 0 10px; border-radius:10px; border:1px dashed var(--border2);
+  background:none; color:var(--muted); font-size:12.5px; cursor:pointer; font-family:inherit; text-align:center}
+.addbtn:hover{border-color:var(--accent); color:var(--text)}
+.doc-chip{background:var(--bg3); border:1px solid var(--border2); border-radius:10px; padding:9px 11px; margin-bottom:8px; font-size:12px}
+.doc-chip .row1{display:flex; align-items:center; gap:8px}
+.doc-chip .name{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; direction:ltr; text-align:right}
+.doc-chip .del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px}
+.doc-chip .meta{color:var(--muted2); font-size:10.5px; margin-top:4px; display:flex; gap:8px; align-items:center}
+.doc-chip input{accent-color:var(--accent)}
+.tpl-item{background:var(--bg3); border:1px solid var(--border2); border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer}
+.tpl-item:hover{border-color:var(--accent)88}
+.tpl-item b{font-size:12.5px; display:block; margin-bottom:3px}
+.tpl-item span{color:var(--muted2); font-size:11px; line-height:1.6}
+.tpl-cat{color:var(--accent); font-size:11px; margin:10px 2px 6px; font-weight:700}
+.mode-item{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:pointer;
+  border:1px solid var(--border2); margin-bottom:7px; font-size:12.5px; background:var(--bg3)}
+.mode-item.on{border-color:var(--accent); background:var(--accent-soft)}
+.mode-item .dot{width:8px;height:8px;border-radius:50%;background:var(--muted2)}
+.mode-item.on .dot{background:var(--accent)}
+#tplsearch{width:100%; background:var(--bg); border:1px solid var(--border2); color:var(--text);
+  border-radius:9px; padding:8px 12px; font-size:12px; margin-bottom:10px; font-family:inherit}
+
+/* ---------- Chat ---------- */
+#chatwrap{flex:1; display:flex; flex-direction:column; min-width:0}
+#chat{flex:1; overflow-y:auto; padding:20px 22px; scroll-behavior:smooth}
+#chat-inner{max-width:860px; margin:0 auto}
+.msg{margin-bottom:18px; display:flex; gap:12px; align-items:flex-start}
+.msg .av{width:34px;height:34px;border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px; margin-top:2px}
+.msg.user .av{background:#233248}
+.msg.ai .av{background:var(--accent-soft); border:1px solid var(--accent)44}
+.msg .body{flex:1; min-width:0}
+.msg .who{font-size:11px; color:var(--muted2); margin-bottom:5px; display:flex; gap:10px; align-items:center}
+.msg .who .acts{opacity:0; transition:opacity .15s}
+.msg:hover .who .acts{opacity:1}
+.msg .who button{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:11px; font-family:inherit; padding:0}
+.msg .who button:hover{color:var(--accent)}
+.bubble{padding:12px 16px; border-radius:var(--radius); font-size:14.5px; line-height:1.95; word-wrap:break-word; overflow-wrap:anywhere}
+.msg.user .bubble{background:var(--user-bubble); border:1px solid var(--accent)38; border-top-right-radius:4px; white-space:pre-wrap}
+.msg.ai .bubble{background:var(--bg3); border:1px solid var(--border); border-top-left-radius:4px}
+.msg.err .bubble{background:#3a1414; border-color:#7a2626; color:#ffb3b3}
+
+/* markdown */
+.bubble h1,.bubble h2,.bubble h3,.bubble h4{margin:14px 0 8px; line-height:1.5}
+.bubble h1{font-size:18px}.bubble h2{font-size:16.5px}.bubble h3{font-size:15.5px}.bubble h4{font-size:14.5px}
+.bubble p{margin:8px 0}
+.bubble ul,.bubble ol{margin:8px 24px 8px 0; padding-right:4px}
+.bubble li{margin:4px 0}
+.bubble blockquote{border-right:3px solid var(--accent); padding:4px 14px; margin:10px 0; color:var(--muted); background:var(--accent-soft); border-radius:6px}
+.bubble hr{border:none; border-top:1px solid var(--border2); margin:14px 0}
+.bubble code{background:var(--code-bg); padding:2px 7px; border-radius:6px; font-size:13px; direction:ltr; unicode-bidi:embed;
+  font-family:"Cascadia Code",Consolas,Monaco,monospace; color:#9ecbff}
+.bubble a{color:var(--accent)}
+.codewrap{direction:ltr; text-align:left; margin:12px 0; border:1px solid var(--border2); border-radius:10px; overflow:hidden; background:var(--code-bg)}
+.codehead{display:flex; justify-content:space-between; align-items:center; padding:6px 12px; background:#101722; border-bottom:1px solid var(--border2)}
+.codehead span{color:var(--muted2); font-size:11px; font-family:Consolas,monospace}
+.codehead button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11.5px; font-family:inherit}
+.codehead button:hover{color:var(--accent)}
+.codewrap pre{padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.75; color:#dbe7ff;
+  font-family:"Cascadia Code",Consolas,Monaco,monospace; direction:ltr; text-align:left}
+.bubble table{border-collapse:collapse; margin:12px 0; width:100%; font-size:13px; display:block; overflow-x:auto}
+.bubble th,.bubble td{border:1px solid var(--border2); padding:7px 11px; text-align:right}
+.bubble th{background:var(--accent-soft)}
+details.think{margin:8px 0; border:1px dashed var(--border2); border-radius:10px; padding:8px 12px; background:#0c1220}
+details.think summary{color:var(--muted2); font-size:12px; cursor:pointer}
+details.think .think-body{color:var(--muted); font-size:12.5px; white-space:pre-wrap; margin-top:8px; line-height:1.8}
+.cursor{display:inline-block; width:8px; height:16px; background:var(--accent); border-radius:2px; animation:blink 1s infinite; vertical-align:middle; margin-right:3px}
+@keyframes blink{50%{opacity:0}}
+
+/* empty state */
+#emptystate{max-width:680px; margin:6vh auto 0; text-align:center; padding:0 16px}
+#emptystate .big{font-size:52px; margin-bottom:14px}
+#emptystate h2{font-size:21px; margin-bottom:10px}
+#emptystate p{color:var(--muted); font-size:13.5px; line-height:2; margin-bottom:22px}
+.suggest-grid{display:flex; flex-wrap:wrap; gap:10px; justify-content:center}
+.suggest{background:var(--bg3); border:1px solid var(--border2); color:var(--muted); border-radius:12px;
+  padding:11px 16px; font-size:12.5px; cursor:pointer; font-family:inherit}
+.suggest:hover{border-color:var(--accent); color:var(--text)}
+#demobox{margin-top:26px; display:none}
+#demobtn{background:none; border:1px dashed var(--border2); color:var(--muted2); padding:9px 18px; border-radius:10px; cursor:pointer; font-size:12px; font-family:inherit}
+#demobtn:hover{color:var(--accent); border-color:var(--accent)}
+
+/* ---------- Composer ---------- */
+#composer{padding:0 22px 16px}
+#composer-inner{max-width:860px; margin:0 auto}
+#chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px}
+.chip{background:var(--bg3); border:1px solid var(--border2); color:var(--muted); border-radius:99px;
+  padding:6px 13px; font-size:12px; cursor:pointer; font-family:inherit; white-space:nowrap}
+.chip:hover{border-color:var(--accent); color:var(--text)}
+.chip.hot{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
+#attachrow{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px}
+.attach-pill{display:flex; align-items:center; gap:7px; background:var(--accent-soft); border:1px solid var(--accent)55;
+  border-radius:99px; padding:4px 12px; font-size:11.5px; color:var(--text)}
+.attach-pill .x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px}
+.attach-pill .toggle{width:12px;height:12px; accent-color:var(--accent); cursor:pointer}
+.inputbox{display:flex; gap:10px; align-items:flex-end; background:var(--bg3); border:1px solid var(--border2);
+  border-radius:16px; padding:10px 12px; transition:border-color .2s}
+.inputbox:focus-within{border-color:var(--accent)88}
+#input{flex:1; background:none; border:none; outline:none; color:var(--text); font-size:14.5px;
+  font-family:inherit; resize:none; max-height:180px; line-height:1.8; padding:6px 4px}
+#sendbtn,#stopbtn{background:var(--accent); color:#0b0f16; border:none; border-radius:12px; width:42px; height:42px;
+  font-size:17px; cursor:pointer; flex-shrink:0}
+#sendbtn:disabled{opacity:.35; cursor:not-allowed}
+#stopbtn{background:#7a2626; color:#ffdddd; display:none}
+.underbar{display:flex; justify-content:space-between; color:var(--muted2); font-size:10.5px; padding:7px 8px 0; max-width:860px; margin:0 auto}
+#tokinfo{direction:ltr}
+
+/* ---------- Modal ---------- */
+#overlay{position:fixed; inset:0; background:#000000aa; display:none; align-items:center; justify-content:center; z-index:50}
+#overlay.open{display:flex}
+#settings{width:min(560px, 94vw); max-height:88vh; overflow-y:auto; background:var(--bg2); border:1px solid var(--border2);
+  border-radius:18px; padding:22px 24px}
+#settings h3{font-size:16px; margin-bottom:16px; display:flex; justify-content:space-between}
+#settings h3 button{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+.set-row{margin-bottom:15px}
+.set-row label{display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px}
+.set-row input[type=text],.set-row input[type=number],.set-row textarea,.set-row select{
+  width:100%; background:var(--bg); border:1px solid var(--border2); color:var(--text); border-radius:9px;
+  padding:9px 12px; font-size:13px; font-family:inherit; outline:none}
+.set-row textarea{min-height:90px; line-height:1.8; resize:vertical}
+.set-row input:focus,.set-row textarea:focus{border-color:var(--accent)}
+.set-hint{color:var(--muted2); font-size:10.5px; margin-top:5px; line-height:1.7}
+.switchrow{display:flex; justify-content:space-between; align-items:center; padding:4px 0}
+.switchrow .lbl{font-size:13px; color:var(--text)}
+.switchrow input{accent-color:var(--accent); width:17px; height:17px}
+#settings .btns{display:flex; gap:10px; margin-top:18px}
+#settings .btns button{flex:1; padding:11px; border-radius:10px; border:1px solid var(--border2); background:var(--bg3);
+  color:var(--text); font-family:inherit; cursor:pointer; font-size:13px}
+#settings .btns button.primary{background:var(--accent); color:#0b0f16; font-weight:700; border-color:var(--accent)}
+
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#243144; border-radius:9px}
+::-webkit-scrollbar-track{background:transparent}
+
+@media(max-width:960px){
+  #tools{position:fixed; z-index:40; top:0; bottom:0; right:0; box-shadow:-10px 0 40px #000a}
+  #sidebar{position:fixed; z-index:45; top:0; bottom:0; right:0; box-shadow:-10px 0 40px #000c}
+  #burger{display:block}
+  .h-sub{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <aside id="sidebar">
+    <div class="side-head">
+      <div class="brand">
+        <div class="logo">💻</div>
+        <div><h1>DevCompanion</h1><small>رفيق المبرمج المحترف · Offline Dev-Companion Stick</small></div>
+      </div>
+      <button id="newchat">＋ محادثة جديدة</button>
+    </div>
+    <div class="side-label">سجل المحادثات (محفوظ محلياً فقط)</div>
+    <div id="chatlist"></div>
+    <div class="offline-note" id="offline-note">
+      المحرك غير متصل — شغّل ملف START من الفلاشة، أو
+      <a href="http://127.0.0.1:8802" target="_blank">افتح الواجهة المدمجة</a>
+    </div>
+    <div class="side-foot">
+      <b style="color:var(--muted)">🔒 يعمل محلياً 100%</b> — لا إنترنت، لا مراقبة، لا بيانات تخرج من جهازك.<br>
+      الإصدار 1.0.0 · 02-Dev-Companion
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <button id="burger" title="القائمة">☰</button>
+      <div>
+        <div class="h-title">رفيق المبرمج المحترف</div>
+        <div class="h-sub">مساعد برمجي خبير في جيبك — توليد أكواد ومراجعة وتصحيح أخطاء في بيئات معزولة تماماً عن الإنترنت.</div>
+      </div>
+      <div class="spacer"></div>
+      <div id="statusbox" title="حالة المحرك — انقر للتحقق">
+        <div id="statusdot"></div><span id="modelname">غير متصل</span>
+      </div>
+      <button class="iconbtn" id="exportbtn" title="تصدير هذه المحادثة إلى ملف Markdown">📤</button>
+      <button class="iconbtn" id="toolsbtn" title="الأدوات">🧰</button>
+      <button class="iconbtn" id="settingsbtn" title="الإعدادات">⚙️</button>
+    </header>
+
+    <div id="workspace">
+      <div id="tools">
+        <div class="tools-head"><span id="tools-title">الأدوات</span><button id="toolsclose">✕</button></div>
+        <div class="tools-body" id="tools-body"></div>
+      </div>
+
+      <div id="chatwrap">
+        <div id="chat"><div id="chat-inner">
+          <div id="emptystate">
+            <div class="big">💻</div>
+            <h2>محرّكك البرمجي الخاص جاهز</h2>
+            <p>توليد، مراجعة، تصحيح، توثيق — كل ذلك محلياً بلا إنترنت. افتح «مكتبة القوالب» 🧰 لبدء سريع، أو الصق كودك واسأل مباشرة.</p>
+            <div class="suggest-grid" id="suggests"></div>
+            <div id="demobox"><button id="demobtn">▶ تجربة الواجهة بنمط العرض (دون محرك)</button></div>
+          </div>
+        </div></div>
+
+        <div id="composer">
+          <div id="composer-inner">
+            <div id="chips"></div>
+            <div id="attachrow"></div>
+            <div class="inputbox">
+              <textarea id="input" rows="1" placeholder="اسأل أو الصق كوداً… مثال: راجع هذه الدالة وأصلح تسريب الذاكرة"></textarea>
+              <button id="stopbtn" title="إيقاف">■</button>
+              <button id="sendbtn" title="إرسال (Enter)">▲</button>
+            </div>
+            <div class="underbar">
+              <span>Enter للإرسال · Shift+Enter لسطر جديد · كل شيء يبقى داخل جهازك</span>
+              <span id="tokinfo"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="overlay">
+  <div id="settings">
+    <h3>⚙️ الإعدادات <button id="setclose">✕</button></h3>
+    <div class="set-row"><label>منفذ المحرك (Port)</label>
+      <input type="text" id="set-port" inputmode="numeric">
+      <div class="set-hint">الافتراضي 8802 — غيّره فقط إذا عدّلت PORT في ملف config/settings.conf</div>
+    </div>
+    <div class="set-row"><label>درجة الإبداع (Temperature): <span id="tempval"></span></label>
+      <input type="range" id="set-temp" min="0" max="1.5" step="0.05" style="width:100%; accent-color:var(--accent)">
+      <div class="set-hint">قيم منخفضة = إجابات دقيقة ومحافظة · قيم مرتفعة = إجابات إبداعية متنوعة</div>
+    </div>
+    <div class="set-row"><label>الحد الأقصى لطول الرد (Tokens)</label>
+      <input type="number" id="set-maxtok" min="128" max="8192" step="128">
+    </div>
+    <div class="set-row"><label>تعليمات النظام (System Prompt) — هوية المساعد وسلوكه</label>
+      <textarea id="set-sys"></textarea>
+    </div>
+    <div class="set-row"><label>عرض سلسلة تفكير النموذج إن وُجدت</label>
+      <div class="switchrow"><span class="lbl">إظهار قسم «🧠 التفكير» قابلاً للطي</span><input type="checkbox" id="set-think"></div>
+    </div>
+    <div id="privacy-settings"></div>
+    <div class="btns">
+      <button id="set-reset">استعادة الافتراضي</button>
+      <button id="set-save" class="primary">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<script src="port.js"></script>
+
+<script>
+"use strict";
+/* ================= الإعداد (يُولد لكل منتج) ================= */
+const CFG = {
+ "dirName": "02-Dev-Companion",
+ "brand": "DevCompanion",
+ "product_ar": "رفيق المبرمج المحترف",
+ "port": 8802,
+ "temp": 0.2,
+ "maxTokens": 4096,
+ "systemPrompt": "أنت «رفيق» — مساعد برمجي خبير يعمل محلياً دون إنترنت. قواعدك: (1) اشرح باقتضاب قبل الكود، ثم أعطِ كوداً كاملاً قابلاً للتشغيل داخل كتل ``` مع تحديد اللغة. (2) اتبع أفضل الممارسات وأسلوب اللغة المعتاد (idiomatic)، وسَمِّ المتغيرات بوضوح. (3) عند تشخيص خطأ اسلك منهجية: السبب المحتمل ← خطوة تحقق ← الإصلاح، واذكر الحالات الحدية. (4) اقترح اختبارات للكود الذي تكتبه عند الحاجة. (5) لا تخترع مكتبات أو دوال غير موجودة. أجب بالعربية إذا سُئلت بالعربية وبالإنجليزية إذا سُئلت بالإنجليزية، مع بقاء الكود والمعرفات بالإنجليزية دائماً.",
+ "icon": "💻",
+ "hello": "محرّكك البرمجي الخاص جاهز",
+ "helloSub": "توليد، مراجعة، تصحيح، توثيق — كل ذلك محلياً بلا إنترنت. افتح «مكتبة القوالب» 🧰 لبدء سريع، أو الصق كودك واسأل مباشرة.",
+ "features": {
+  "docs": false,
+  "redaction": false,
+  "templates": true,
+  "modes": false
+ },
+ "suggests": [
+  {
+   "label": "🐞 صحّح خطأً",
+   "prompt": "أواجه هذا الخطأ ولا أفهم سببه:\n\n```\n\n```\n\nالكود:\n```\n\n```\nفسّر السبب الجذري ثم أعطني الإصلاح."
+  },
+  {
+   "label": "🔍 راجع كودي",
+   "prompt": "راجع هذا الكود كأنك مهندس أول واذكر الملاحظات مصنفة (يجب إصلاحه/يُنصح/رأي):\n\n```\n\n```"
+  },
+  {
+   "label": "⚡ حسّن الأداء",
+   "prompt": "حسّن أداء هذا الكود واشرح أثر كل تغيير:\n\n```\n\n```"
+  },
+  {
+   "label": "🧪 اكتب اختبارات",
+   "prompt": "اكتب اختبارات شاملة لهذا الكود تغطي الحالات الحدية:\n\n```\n\n```"
+  }
+ ],
+ "chips": [
+  {
+   "label": "🧩 مكتبة القوالب",
+   "prompt": "",
+   "action": "tools"
+  },
+  {
+   "label": "🐞 تصحيح خطأ",
+   "prompt": "🐞 ساعدني في تصحيح هذا الخطأ.\n\nاللغة/التقنية: {LANGUAGE}\n\nرسالة الخطأ الكاملة:\n```\n\n```\n\nالكود المشتبه به:\n```\n\n```\n\nما جربته حتى الآن:\n-\n\nاتبع: (1) تفسير رسالة الخطأ بدقة (2) أهم سببين محتملين (3) خطوات تحقق لكل سبب (4) الإصلاح الكامل (5) كيف أتأكد أنه نهائي."
+  },
+  {
+   "label": "🔍 مراجعة كود",
+   "prompt": "🔍 راجع هذا الكود كما يفعل مهندس أول:\n\n```\n\n```\n\nغطِّ: الصحة والمنطق، الأمان، الأداء، القراءة والتسمية، معالجة الأخطاء، الحالات الحدية. صنّف الملاحظات: 🔴 يجب إصلاحه · 🟡 يُنصح · 🟢 رأي. واختم بنسخة محسّنة كاملة."
+  },
+  {
+   "label": "🧪 اختبارات",
+   "prompt": "🧪 اكتب مجموعة اختبارات شاملة لهذا الكود بإطار {LANGUAGE} القياسي:\n\n```\n\n```\n\nغطِّ المسار السعيد والحالات الحدية والمدخلات غير الصالحة، وسمِّ كل اختبار باسم واضح مع تعليق يشرح ما يتحقق منه."
+  },
+  {
+   "label": "⚡ تحسين أداء",
+   "prompt": "⚡ حسّن أداء هذا الكود:\n\n```\n\n```\n\nحدّد الاختناق الأساسي، ثم قدّم نسخة محسّنة مع شرح كل تغيير وأثره، وقارن التعقيد الزمني قبل/بعد."
+  }
+ ],
+ "modes": null,
+ "templates": [
+  {
+   "cat": "المراجعة والتشخيص",
+   "label": "🔎 مراجعة كود احترافية",
+   "desc": "فحص شامل: منطق، أمان، أداء، قراءة",
+   "temp": 0.2,
+   "prompt": "راجع الكود التالي كما يفعل مهندس أول في فريق كبير:\n\nاللغة/التقنية: {LANGUAGE}\n\n```\n\n```\n\nغطِّ بالترتيب: (1) الصحة والمنطق (2) الأمان (3) الأداء (4) القراءة والتسمية (5) معالجة الأخطاء (6) الحالات الحدية.\nصنّف كل ملاحظة: 🔴 يجب إصلاحه · 🟡 يُنصح · 🟢 رأي شخصي.\nاختم بنسخة محسّنة كاملة مع قائمة بأهم 3 تحسينات."
+  },
+  {
+   "cat": "المراجعة والتشخيص",
+   "label": "🐞 تشخيص خطأ منهجي",
+   "desc": "من رسالة الخطأ إلى الإصلاح الجذري",
+   "temp": 0.2,
+   "prompt": "ساعدني في تصحيح هذا الخطأ بمنهجية.\n\nاللغة/التقنية: {LANGUAGE}\n\nرسالة الخطأ الكاملة:\n```\n\n```\n\nالكود المشتبه به:\n```\n\n```\n\nما جربته حتى الآن:\n-\n\nالمطلوب: (1) تفسير رسالة الخطأ بدقة (2) أهم سببين محتملين مرتبين (3) خطوة تحقق سريعة لكل سبب (4) الإصلاح المقترح كاملاً (5) كيف أتأكد أن الإصلاح نهائي وليس ترقيعاً."
+  },
+  {
+   "cat": "المراجعة والتشخيص",
+   "label": "🛡️ تدقيق أمني",
+   "desc": "OWASP-style للكود المعطى",
+   "temp": 0.2,
+   "prompt": "قم بتدقيق أمني للكود التالي:\n\n```\n\n```\n\nافحص: الحقن (SQL/Command/XSS)، إدارة الأسرار والمفاتيح، التحقق من المدخلات، مصادقة/تفويض، معالجة الأخطاء المكشوفة، اعتمادات قديمة.\nلكل ثغرة محتملة: الخطورة (حرجة/عالية/متوسطة/منخفضة)، السيناريو، والإصلاح مع كود بديل."
+  },
+  {
+   "cat": "التوليد",
+   "label": "✨ بناء ميزة كاملة",
+   "desc": "من وصف المواصفات إلى خطة وكود",
+   "temp": 0.3,
+   "prompt": "ابنِ لي الميزة التالية:\n\nاللغة/التقنية: {LANGUAGE}\n\nالمواصفة:\n\nالمدخلات:\n- \nالمخرجات المتوقعة:\n- \nقيود:\n- \n\nالمطلوب: (1) خطة تنفيذ من 3-5 خطوات (2) هيكل الملفات إن لزم (3) الكود الكامل جاهز التشغيل (4) اختبار سريع للتحقق (5) ما سأحتاج إضافته لاحقاً."
+  },
+  {
+   "cat": "التوليد",
+   "label": "⚙️ دالة من مواصفة",
+   "desc": "دالة موثقة بحدودها وحالاتها",
+   "temp": 0.2,
+   "prompt": "اكتب دالة وفق المواصفة:\n\nاللغة: {LANGUAGE}\nالاسم المقترح:\nالمدخلات (نوع ومعنى):\n- \nالمخرجات:\n- \nالحالات الحدية:\n- \n\nاكتب: توقيعاً واضحاً، توثيقاً كاملاً (docstring)، تنفيذاً نظيفاً، ومعالجة صريحة للحالات الحدية، ثم 4 أمثلة استخدام."
+  },
+  {
+   "cat": "التوليد",
+   "label": "🗄️ SQL من متطلبات",
+   "desc": "مخطط + استعلام + فهارس",
+   "temp": 0.2,
+   "prompt": "حوّل المتطلبات التالية إلى SQL:\n\nقاعدة البيانات: {LANGUAGE}\n\nالمتطلبات:\n\nالمطلوب: (1) مخطط الجداول مع الأعمدة والأنواع والعلاقات (2) الاستعلام الأساسي المطلوب (3) فهارس مقترحة مع سبب كل فهرس (4) استعلامات تشغيل شائعة قد أحتاجها (5) ملاحظات أداء."
+  },
+  {
+   "cat": "التوليد",
+   "label": "🔤 بناء Regex",
+   "desc": "نمط + شرح + اختبارات",
+   "temp": 0.2,
+   "prompt": "ابنِ لي تعبيراً نمطياً (Regex) لهذا الغرض:\n\nاللغة: {LANGUAGE}\n\nما يجب أن يطابق:\n- \nما يجب ألا يطابق:\n- \n\nأعطني: النمط النهائي، شرحاً جزءاً جزءاً، و10 حالات اختبار (مطابق/غير مطابق) في جدول."
+  },
+  {
+   "cat": "التوليد",
+   "label": "🔄 تحويل/ترحيل كود",
+   "desc": "بين اللغات أو الأطر أو الإصدارات",
+   "temp": 0.3,
+   "prompt": "حوّل الكود التالي:\n\nمن: \nإلى: {LANGUAGE}\n\n```\n\n```\n\nحافظ على السلوك تماماً. اذكر: (1) الفروقات الجوهرية بين البيئتين (2) الكود المحوّل كاملاً (3) مكتبات {LANGUAGE} المقابلة المستخدمة (4) ما يجب اختباره بعد الترحيل."
+  },
+  {
+   "cat": "الجودة",
+   "label": "🧪 كتابة اختبارات",
+   "desc": "تغطية شاملة بأسلوب AAA",
+   "temp": 0.2,
+   "prompt": "اكتب اختبارات للكود التالي بإطار {LANGUAGE} القياسي:\n\n```\n\n```\n\nاستخدم أسلوب Arrange-Act-Assert. غطِّ: المسار السعيد، الحالات الحدية، المدخلات غير الصالحة، والاستثناءات المتوقعة. سمِّ كل اختبار باسم يصف السلوك المتحقق، وعلّق بما يغطيه."
+  },
+  {
+   "cat": "الجودة",
+   "label": "🧹 إعادة هيكلة",
+   "desc": "تحسين البنية دون تغيير السلوك",
+   "temp": 0.2,
+   "prompt": "أعد هيكلة الكود التالي دون تغيير سلوكه:\n\n```\n\n```\n\nابدأ بتحليل المشكلات الحالية (طول، تكرار، مسؤوليات متعددة، تسمية)، ثم قدّم النسخة المعاد هيكلتها، ثم جدولاً: ما تغيّر | لماذا | ما لم يتغير."
+  },
+  {
+   "cat": "الجودة",
+   "label": "⚡ تحسين الأداء",
+   "desc": "تحديد الاختناق وإصلاحه",
+   "temp": 0.2,
+   "prompt": "حسّن أداء الكود التالي:\n\n```\n\n```\n\nالمطلوب: (1) تحديد الاختناق الأساسي وسببه (2) نسخة محسّنة (3) شرح كل تغيير وأثره المتوقع (4) مقارنة التعقيد الزمني/المكاني قبل وبعد (5) كيف أقيس الفرق عملياً."
+  },
+  {
+   "cat": "الجودة",
+   "label": "📝 التوثيق",
+   "desc": "Docstrings وقسم README",
+   "temp": 0.3,
+   "prompt": "وثّق الكود التالي:\n\n```\n\n```\n\nأنتج: (1) Docstrings كاملة لكل دالة/كلاس (الغرض، المدخلات، المخرجات، الاستثناءات، مثال) (2) وحدة توضيحية في الأعلى (3) قسم README مصغر: الغرض، الاستخدام، المتطلبات."
+  },
+  {
+   "cat": "الهندسة",
+   "label": "🔌 تصميم API",
+   "desc": "نقاط نهاية REST موثقة",
+   "temp": 0.3,
+   "prompt": "صمّم API للمجال التالي:\n\nالسياق:\n\nالمتطلبات:\n- \n\nأنتج: (1) قائمة نقاط النهاية (الطريقة، المسار، الوصف) في جدول (2) نماذج الطلب/الاستجابة (3) رموز الحالة ومعالجة الأخطاء (4) قواعد المصادقة (5) مثالاً لكل نقطة رئيسة."
+  },
+  {
+   "cat": "الهندسة",
+   "label": "🏗️ تصميم معماري",
+   "desc": "حل معماري مع موازنة البدائل",
+   "temp": 0.4,
+   "prompt": "اقترح معمارية للحاجة التالية:\n\nالسياق والمتطلبات:\n\nالقيود (أداء/تكلفة/فريق):\n- \n\nأنتج: (1) نمط معماري مقترح مع مبررات (2) رسم ASCII للمكونات وتدفق البيانات (3) جدول موازنة لبديلين آخرين (4) أكبر 3 مخاطر تقنية وتخفيفها (5) خطة مرحلية للتنفيذ."
+  }
+ ]
+};
+
+const LS_CHATS = "chats_" + CFG.dirName, LS_SET = "settings_" + CFG.dirName;
+const state = {
+  chats: [], current: null, streaming: false, abort: null,
+  serverOk: false, modelLabel: "", mode: (CFG.modes && CFG.modes[0] ? CFG.modes[0].id : null),
+  docs: [],            // المستندات المرفقة (منتج 1)
+  demo: false
+};
+
+/* ---------- تخزين آمن (يتحمل حظر localStorage في بعض البيئات) ---------- */
+const store = {
+  _mem: {},
+  get(k){ try { return window.localStorage.getItem(k); } catch(e){ return (k in this._mem) ? this._mem[k] : null; } },
+  set(k,v){ try { window.localStorage.setItem(k, v); } catch(e){ this._mem[k] = v; } }
+};
+
+/* ---------- الإعدادات ---------- */
+const DEFAULTS = {
+  port: (window.LAUNCH_PORT || CFG.port),
+  temp: CFG.temp, maxtok: CFG.maxTokens || 2048,
+  sys: CFG.systemPrompt, showThink: true,
+  docLimit: 60000, totalLimit: 150000, redact: true, attachByDefault: true
+};
+let settings = loadSettings();
+function loadSettings(){
+  try{ return Object.assign({}, DEFAULTS, JSON.parse(store.get(LS_SET) || "{}")); }
+  catch(e){ return Object.assign({}, DEFAULTS); }
+}
+function saveSettings(){ store.set(LS_SET, JSON.stringify(settings)); }
+
+/* ---------- أدوات عامة ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmtKB(n){ return n > 1024*1024 ? (n/1024/1024).toFixed(1)+" MB" : (n>1024 ? (n/1024).toFixed(0)+" KB" : n+" B"); }
+function approxTokens(t){ return Math.ceil(t.length/3); }
+
+/* ================= Markdown-lite ================= */
+function mdToHtml(src){
+  const codeBlocks = [];
+  let t = esc(src || "");
+  // كتل الكود
+  t = t.replace(/```(\w*)\n?([\s\S]*?)(?:```|$)/g, (m, lang, code) => {
+    const i = codeBlocks.length;
+    codeBlocks.push({lang: lang || "code", code: code.replace(/\n$/,"")});
+    return "\u0000CODE" + i + "\u0000";
+  });
+  const inline = s => s
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>")
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<i>$2</i>");
+  // الأسطر
+  const lines = t.split("\n"); let html = "", list = null, tbl = null;
+  const closeList = () => { if(list){ html += "</" + list + ">"; list = null; } };
+  const closeTbl = () => { if(tbl){ html += "</tbody></table>"; tbl = null; } };
+  for(let ln of lines){
+    if(/^\s*\|.*\|\s*$/.test(ln)){
+      const cells = ln.trim().replace(/^\||\|$/g,"").split("|").map(c => inline(c.trim()));
+      if(cells.every(c => /^-{2,}:?$/.test(c.replace(/\s/g,"")) || c === "")) continue; // فاصل الجدول
+      if(!tbl){ closeList(); html += "<table><tbody>"; tbl = true; }
+      html += "<tr>" + cells.map(c => "<td>" + c + "</td>").join("") + "</tr>";
+      continue;
+    } else closeTbl();
+    let m;
+    if((m = ln.match(/^(#{1,4})\s+(.*)/))){ closeList(); const n = m[1].length+0; html += `<h${n}>${inline(m[2])}</h${n}>`; }
+    else if(/^\s*(-{3,}|\*{3,})\s*$/.test(ln)){ closeList(); html += "<hr>"; }
+    else if((m = ln.match(/^\s*&gt;\s?(.*)/))){ closeList(); html += "<blockquote>" + inline(m[1]) + "</blockquote>"; }
+    else if((m = ln.match(/^\s*[-*•]\s+(.*)/))){ if(list!=="ul"){ closeList(); html += "<ul>"; list="ul"; } html += "<li>" + inline(m[1]) + "</li>"; }
+    else if((m = ln.match(/^\s*\d+[.)]\s+(.*)/))){ if(list!=="ol"){ closeList(); html += "<ol>"; list="ol"; } html += "<li>" + inline(m[1]) + "</li>"; }
+    else if(ln.trim() === ""){ closeList(); }
+    else { closeList(); html += "<p>" + inline(ln) + "</p>"; }
+  }
+  closeList(); closeTbl();
+  // الروابط → نص فقط (بيئة معزولة بلا إنترنت)
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1");
+  // إرجاع كتل الكود (محتواها مُهرَّب مسبقاً ضمن المصدر — لا نهرّبها مرتين)
+  html = html.replace(/\u0000CODE(\d+)\u0000/g, (m, i) => {
+    const b = codeBlocks[+i];
+    return `<div class="codewrap"><div class="codehead"><span>${b.lang}</span><button class="copycode" type="button">📋 نسخ</button></div><pre>${b.code}</pre></div>`;
+  });
+  return html;
+}
+
+/* ================= حالة الخادم ================= */
+function baseUrl(){ return "http://127.0.0.1:" + settings.port; }
+async function pingServer(){
+  try{
+    const r = await fetchWithTimeout(baseUrl() + "/v1/models", 3500);
+    const j = await r.json();
+    state.serverOk = true;
+    state.modelLabel = (j.data && j.data[0] && j.data[0].id) ? j.data[0].id : "متصل";
+    if(state.modelLabel.includes("/") || state.modelLabel.length > 34){
+      const f = state.modelLabel.split(/[\\/]/).pop();
+      state.modelLabel = f.length < 36 ? f : f.slice(0,33) + "…";
+    }
+  }catch(e){
+    state.serverOk = false; state.modelLabel = "غير متصل";
+  }
+  renderStatus();
+}
+function fetchWithTimeout(url, ms, opts){
+  const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
+  return fetch(url, Object.assign({signal: c.signal}, opts)).finally(() => clearTimeout(t));
+}
+function renderStatus(){
+  $("#statusdot").classList.toggle("ok", state.serverOk);
+  $("#modelname").textContent = state.serverOk ? state.modelLabel : "غير متصل";
+  $("#offline-note").style.display = state.serverOk ? "none" : "block";
+  $("#demobox").style.display = state.serverOk ? "none" : "block";
+}
+
+/* ================= المحادثات ================= */
+function loadChats(){
+  try{ state.chats = JSON.parse(store.get(LS_CHATS) || "[]"); }catch(e){ state.chats = []; }
+}
+function persist(){ store.set(LS_CHATS, JSON.stringify(state.chats.slice(-40))); }
+function currentChat(){ return state.chats.find(c => c.id === state.current); }
+function newChat(){
+  const c = { id: uid(), title: "محادثة جديدة", msgs: [], ts: Date.now() };
+  state.chats.push(c); state.current = c.id; persist(); renderChatList(); renderChat();
+}
+function delChat(id){
+  state.chats = state.chats.filter(c => c.id !== id);
+  if(state.current === id){ state.current = state.chats.length ? state.chats[state.chats.length-1].id : null; }
+  persist(); renderChatList(); renderChat();
+}
+function renderChatList(){
+  const el = $("#chatlist"); el.innerHTML = "";
+  [...state.chats].reverse().forEach(c => {
+    const d = document.createElement("div");
+    d.className = "chat-item" + (c.id === state.current ? " active" : "");
+    d.innerHTML = `<span class="t">${esc(c.title)}</span><button class="x" title="حذف">🗑</button>`;
+    d.querySelector(".x").onclick = ev => { ev.stopPropagation(); delChat(c.id); };
+    d.onclick = () => { state.current = c.id; renderChatList(); renderChat(); };
+    el.appendChild(d);
+  });
+}
+
+/* ================= عرض الرسائل ================= */
+function renderChat(){
+  const inner = $("#chat-inner"); inner.innerHTML = "";
+  const c = currentChat();
+  if(!c || c.msgs.length === 0){
+    inner.appendChild(emptyState());
+  } else {
+    c.msgs.forEach((m, i) => inner.appendChild(msgEl(m, i)));
+  }
+  scrollBottom();
+  renderAttachRow();
+}
+function emptyState(){
+  const d = document.createElement("div"); d.id = "emptystate";
+  d.innerHTML = `
+    <div class="big">${CFG.icon}</div>
+    <h2>${CFG.hello}</h2><p>${CFG.helloSub}</p>
+    <div class="suggest-grid" id="suggests"></div>
+    <div id="demobox" style="display:${state.serverOk ? "none" : "block"}">
+      <button id="demobtn">▶ تجربة الواجهة بنمط العرض (دون محرك)</button></div>`;
+  const sg = d.querySelector("#suggests");
+  (CFG.suggests || []).forEach(s => {
+    const b = document.createElement("button"); b.className = "suggest"; b.textContent = s.label;
+    b.onclick = () => { $("#input").value = s.prompt; $("#input").focus(); autoGrow(); };
+    sg.appendChild(b);
+  });
+  const db = d.querySelector("#demobtn");
+  if(db) db.onclick = startDemo;
+  return d;
+}
+function msgEl(m, idx){
+  const wrap = document.createElement("div");
+  wrap.className = "msg " + (m.role === "user" ? "user" : "ai") + (m.error ? " err" : "");
+  const avatar = m.role === "user" ? "🧑" : CFG.icon;
+  const who = m.role === "user" ? "أنت" : CFG.brand;
+  let bodyHtml = "";
+  if(m.think) bodyHtml += `<details class="think"><summary>🧠 سلسلة التفكير (${m.think.length} حرف)</summary><div class="think-body">${esc(m.think)}</div></details>`;
+  bodyHtml += `<div class="bubble">${mdToHtml(m.content || (m.streaming ? "" : "…"))}${m.streaming ? '<span class="cursor"></span>' : ""}</div>`;
+  wrap.innerHTML = `<div class="av">${avatar}</div>
+    <div class="body">
+      <div class="who"><span>${who}</span><span class="acts">
+        <button data-a="copy" data-i="${idx}">📋 نسخ</button>
+        <button data-a="regen" data-i="${idx}">↻ إعادة توليد</button>
+      </span></div>${bodyHtml}</div>`;
+  wrap.querySelector('[data-a="copy"]').onclick = () => copyText(currentChat().msgs[idx].content);
+  wrap.querySelector('[data-a="regen"]').onclick = () => regenerate(idx);
+  wrap.querySelectorAll(".copycode").forEach(b => b.onclick = ev => {
+    const code = ev.target.closest(".codewrap").querySelector("pre").textContent;
+    copyText(code, ev.target); 
+  });
+  return wrap;
+}
+function copyText(txt, btn){
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject())
+    .catch(() => { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); })
+    .finally(() => { if(btn){ const o = btn.textContent; btn.textContent = "✓ تم النسخ"; setTimeout(() => btn.textContent = o, 1400); } });
+}
+function scrollBottom(){ const ch = $("#chat"); ch.scrollTop = ch.scrollHeight + 999; }
+function autoGrow(){ const ta = $("#input"); ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 180) + "px"; }
+
+/* ================= الإرسال ================= */
+function composeFinal(userText){
+  const attached = state.docs.filter(d => d.on);
+  if(!attached.length) return userText;
+  let total = 0; const blocks = [];
+  for(const d of attached){
+    let txt = d.text;
+    if(settings.redact) txt = redact(txt);
+    if(txt.length > settings.docLimit) txt = txt.slice(0, settings.docLimit) + "\n…[تم اقتطاع بقية المستند]";
+    if(total + txt.length > settings.totalLimit) txt = txt.slice(0, Math.max(0, settings.totalLimit - total));
+    blocks.push("مستند: «" + d.name + "»\n\"\"\"\n" + txt + "\n\"\"\"");
+    total += txt.length;
+  }
+  return "📘 إليك المستندات المرفقة:\n\n" + blocks.join("\n\n") + "\n\n---\n\n⚙️ المطلوب: " + userText;
+}
+function buildMessages(userText){
+  const msgs = [{ role: "system", content: systemNow() }];
+  const c = currentChat();
+  // كل الرسائل السابقة عدا الأخيرة (وهي رسالة المستخدم الحالية تُدمج أدناه)
+  const hist = c.msgs.filter(m => !m.error).slice(-15, -1);
+  hist.forEach(m => msgs.push({ role: m.role, content: m.payload || m.content }));
+  msgs.push({ role: "user", content: userText });
+  return msgs;
+}
+function systemNow(){
+  let s = settings.sys;
+  if(CFG.modes){
+    const m = CFG.modes.find(x => x.id === state.mode);
+    if(m && m.prompt) s += "\n\n" + m.prompt;
+  }
+  return s;
+}
+
+async function send(){
+  if(state.streaming) return;
+  const ta = $("#input"); const text = ta.value.trim();
+  if(!text) return;
+  if(!currentChat()) newChat();
+  const c = currentChat();
+  // ما يُعرض في المحادثة هو نصك؛ ما يُرسل للنموذج يتضمن المستندات المرفقة (payload)
+  c.msgs.push({ role: "user", content: text, payload: composeFinal(text) });
+  c.title = c.title === "محادثة جديدة" ? text.slice(0, 46) : c.title;
+  ta.value = ""; autoGrow(); persist(); renderChatList(); renderChat();
+  await streamReply();
+}
+
+async function streamReply(){
+  const c = currentChat();
+  const m = { role: "assistant", content: "", think: "", streaming: true };
+  c.msgs.push(m);
+  renderChat();
+  setStreaming(true);
+  const t0 = performance.now(); let nChunks = 0;
+
+  // نمط العرض التجريبي
+  if(state.demo){
+    await demoStream(m); setStreaming(false); m.streaming = false; renderChat(); persist();
+    return;
+  }
+  try{
+    state.abort = new AbortController();
+    const res = await fetch(baseUrl() + "/v1/chat/completions", {
+      method: "POST", signal: state.abort.signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: state.modelLabel || "local", messages: buildMessages(lastUserText()),
+        stream: true, temperature: settings.temp, max_tokens: settings.maxtok
+      })
+    });
+    if(!res.ok){ throw new Error("HTTP " + res.status); }
+    const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+      buf += dec.decode(value, { stream: true });
+      const parts = buf.split("\n"); buf = parts.pop();
+      for(const line of parts){
+        const s = line.trim();
+        if(!s.startsWith("data:")) continue;
+        const payload = s.slice(5).trim();
+        if(payload === "[DONE]") continue;
+        try{
+          const j = JSON.parse(payload);
+          const d = (j.choices && j.choices[0] && j.choices[0].delta) || {};
+          if(d.reasoning_content){ m.think += d.reasoning_content; }
+          if(d.content){ m.content += d.content; nChunks++; }
+        }catch(e){}
+      }
+      renderStreaming(m);
+    }
+    if(!m.content && !m.think) m.content = "(لم يصل رد — جرّب خفض حجم السياق أو أعد التشغيل)";
+  }catch(e){
+    if(e.name === "AbortError"){ m.content += "\n\n⏹ *(أوقفتَ التوليد)*"; }
+    else {
+      m.error = true;
+      m.content = "⚠️ تعذّر الاتصال بالمحرك المحلي (127.0.0.1:" + settings.port + ").\n\n" +
+        "1) تأكد من تشغيل ملف **START** من مجلد المنتج وانتظار تحميل النموذج.\n" +
+        "2) تأكد أن المنفذ في الإعدادات يطابق PORT في config/settings.conf.\n" +
+        "3) راجع سجل الأخطاء في logs/engine.log\n" +
+        "4) أو افتح الواجهة المدمجة: http://127.0.0.1:" + settings.port;
+    }
+  }
+  const secs = (performance.now() - t0) / 1000;
+  m.streaming = false;
+  $("#tokinfo").textContent = (secs > 0.5 && nChunks > 0) ? ("≈ " + (nChunks/secs).toFixed(1) + " tok/s") : "";
+  setStreaming(false); persist(); renderChat();
+}
+function lastUserText(){
+  const c = currentChat();
+  for(let i = c.msgs.length - 1; i >= 0; i--) if(c.msgs[i].role === "user") return (c.msgs[i].payload || c.msgs[i].content);
+  return "";
+}
+function regenerate(idx){
+  if(state.streaming) return;
+  const c = currentChat();
+  const target = c.msgs[idx];
+  if(!target || target.role !== "assistant") return;
+  // احذف هذا الرد وكل ما بعده ثم أعد التوليد على أساس آخر رسالة مستخدم قبله
+  c.msgs = c.msgs.slice(0, idx);
+  persist(); renderChat(); streamReply();
+}
+function renderStreaming(m){
+  const inner = $("#chat-inner");
+  let el = inner.querySelector(".msg:last-child");
+  if(!el || !el.classList.contains("ai")){ el = msgEl(m, currentChat().msgs.indexOf(m)); inner.appendChild(el); }
+  const b = el.querySelector(".bubble");
+  b.innerHTML = mdToHtml(m.content) + '<span class="cursor"></span>';
+  let th = el.querySelector("details.think");
+  if(m.think){
+    if(!th){ th = document.createElement("details"); th.className = "think"; th.innerHTML = '<summary>🧠 سلسلة التفكير…</summary><div class="think-body"></div>'; el.querySelector(".body").insertBefore(th, b); }
+    th.querySelector(".think-body").textContent = m.think;
+    if(settings.showThink) th.open = true; else { th.querySelector(".think-body").style.display = "none"; }
+  }
+  if(!settings.showThink && th) th.style.display = "none"; else if(th) th.style.display = "";
+  scrollBottom();
+}
+function setStreaming(on){
+  state.streaming = on;
+  $("#sendbtn").style.display = on ? "none" : "block";
+  $("#stopbtn").style.display = on ? "block" : "none";
+}
+
+/* ================= نمط العرض ================= */
+function startDemo(){
+  state.demo = true;
+  if(!currentChat()) newChat();
+  const ta = $("#input");
+  if(!ta.value.trim()) ta.value = "عرّفني بما تستطيع فعله، واشرح كيف تحافظ على خصوصيتي.";
+  send();
+  state.demo = false;
+}
+async function demoStream(m){
+  const reply = "👋 **هذا نمط عرض فقط** — أنت ترى شكل الواجهة دون تشغيل المحرك.\n\n" +
+    "عند تشغيل ملف `START` من الفلاشة وانتظار تحميل النموذج، ستحصل على ردود حقيقية من نموذج ذكاء اصطناعي كامل يعمل داخل جهازك.\n\n" +
+    "ما يميز هذه الواجهة:\n- دعم كامل للعربية والاتجاه RTL\n- تنسيق غني: عناوين وقوائم وجداول\n- كتل كود مع زر نسخ\n- كل المحادثات تُحفظ محلياً فقط\n\n" +
+    "```python\n# مثال: كتلة كود قابلة للنسخ\nprint(\"مرحباً من الجهاز المحلي!\")\n```\n\n🔒 لا يخرج أي حرف من جهازك إلى أي مكان.";
+  const words = reply.split(" ");
+  for(const w of words){
+    if(!state.streaming) return;
+    m.content += (m.content ? " " : "") + w;
+    renderStreaming(m);
+    await new Promise(r => setTimeout(r, 45));
+  }
+}
+
+/* ================= المستندات (منتج 1) ================= */
+function renderAttachRow(){
+  const row = $("#attachrow"); if(!row) return; row.innerHTML = "";
+  state.docs.forEach((d, i) => {
+    if(!d.on) return;
+    const p = document.createElement("span"); p.className = "attach-pill";
+    p.innerHTML = `📄 <span>${esc(d.name)}</span> <input type="checkbox" class="toggle" checked title="إرفاق في الرسالة القادمة"><button class="x" title="إزالة">✕</button>`;
+    p.querySelector(".toggle").onchange = ev => { d.on = ev.target.checked; renderAttachRow(); };
+    p.querySelector(".x").onclick = () => { state.docs.splice(i,1); renderAttachRow(); buildTools(); };
+    row.appendChild(p);
+  });
+}
+function redact(txt){
+  let count = 0;
+  const rep = re => txt.replace(re, () => { count++; return "[مُحجوب]"; });
+  txt = rep(/[\w.+-]+@[\w-]+\.[\w.]+/g);                                  // بريد
+  txt = rep(/\b[A-Z]{2}\d{2}[A-Z0-9]{11,28}\b/g);                         // IBAN
+  txt = rep(/\b(?:\d[ -]*?){13,19}\b/g);                                  // بطاقة
+  txt = rep(/(?:\+?\d[\d\s-]{8,14}\d)/g);                                 // هاتف
+  window.__redacted = count;
+  return txt;
+}
+async function readDocFile(file){
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  if(["txt","md","csv","json","log","xml","html","htm","srt","ini","yaml","yml","tsv","tex"].includes(ext)){
+    return await file.text();
+  }
+  if(ext === "pdf" && window.pdfjsLib){
+    const pdf = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    let out = "";
+    const maxPages = Math.min(pdf.numPages, 300);
+    for(let p = 1; p <= maxPages; p++){
+      const pg = await pdf.getPage(p);
+      const tc = await pg.getTextContent();
+      out += tc.items.map(it => it.str).join(" ") + "\n\n";
+    }
+    return out;
+  }
+  if(ext === "docx" && window.JSZip){
+    const zip = await window.JSZip.loadAsync(await file.arrayBuffer());
+    let xml = await zip.file("word/document.xml").async("string");
+    xml = xml
+      .replace(/<w:tab[^>]*\/>/g, "\t")
+      .replace(/<\/w:p>/g, "\n")
+      .replace(/<w:br[^>]*\/>/g, "\n")
+      .replace(/<[^>]+>/g, "");
+    const dec = { "&amp;":"&","&lt;":"<","&gt;":">","&quot;":'"',"&apos;":"'" };
+    return xml.replace(/&\w+;/g, m => dec[m] || " ");
+  }
+  throw new Error("صيغة غير مدعومة: " + ext);
+}
+
+/* ================= لوحة الأدوات ================= */
+function buildTools(){
+  const body = $("#tools-body"); if(!body) return; body.innerHTML = "";
+  if(CFG.features.docs){
+    $("#tools-title").textContent = "📄 المستندات";
+    const note = document.createElement("div"); note.className = "tool-note";
+    note.innerHTML = "اختر مستندات من جهازك (TXT · MD · PDF · DOCX · CSV · JSON). تُقرأ <b>داخل المتصفح فقط</b> ثم تُرفق بأسئلتك." +
+      (CFG.features.redact ? "<br>🛡️ الإخفاء التلقائي للبيانات الحساسة (بريد/هاتف/بطاقات/IBAN): " + (settings.redact ? "<b>مفعّل</b>" : "معطّل") : "");
+    body.appendChild(note);
+    const file = document.createElement("input"); file.type = "file"; file.id = "docinput"; file.multiple = true;
+    file.accept = ".txt,.md,.csv,.json,.log,.xml,.html,.htm,.tsv,.yaml,.yml,.ini,.srt,.pdf,.docx";
+    body.appendChild(file);
+    const add = document.createElement("button"); add.className = "addbtn"; add.textContent = "＋ إضافة مستندات";
+    add.onclick = () => file.click();
+    body.appendChild(add);
+    file.onchange = async () => {
+      for(const f of file.files){
+        try{
+          let text = await readDocFile(f);
+          let masked = 0;
+          if(settings.redact){ text = redact(text); masked = window.__redacted || 0; }
+          state.docs.push({ name: f.name, size: f.size, text: text, on: settings.attachByDefault });
+        }catch(err){ alert("تعذّر قراءة " + f.name + "\n" + err.message); }
+      }
+      file.value = ""; buildTools(); renderAttachRow();
+    };
+    state.docs.forEach((d, i) => {
+      const ch = document.createElement("div"); ch.className = "doc-chip";
+      ch.innerHTML = `<div class="row1">📄 <span class="name">${esc(d.name)}</span><button class="del" title="حذف">🗑</button></div>
+        <div class="meta"><span>${fmtKB(d.text.length)}</span><span>≈ ${approxTokens(d.text.length)} رمز</span>
+        <label style="display:flex;gap:4px;align-items:center;margin-right:auto"><input type="checkbox" ${d.on?"checked":""}> إرفاق</label></div>`;
+      ch.querySelector(".del").onclick = () => { state.docs.splice(i,1); buildTools(); renderAttachRow(); };
+      ch.querySelector("input").onchange = ev => { d.on = ev.target.checked; renderAttachRow(); };
+      body.appendChild(ch);
+    });
+    const tip = document.createElement("div"); tip.className = "tool-note";
+    tip.innerHTML = "💡 يمكنك أيضاً وضع مستنداتك مسبقاً في مجلد <b>data/documents</b> ثم فتحها من هنا. لا يُرسل أي ملف عبر الشبكة — النص يُدمج في الرسالة محلياً.";
+    body.appendChild(tip);
+  }
+  if(CFG.features.templates){
+    $("#tools-title").textContent = "🧩 مكتبة القوالب";
+    const search = document.createElement("input"); search.id = "tplsearch"; search.placeholder = "🔍 ابحث في القوالب…";
+    body.appendChild(search);
+    const render = q => {
+      body.querySelectorAll(".tpl-item,.tpl-cat").forEach(e => e.remove());
+      let lastCat = "";
+      CFG.templates.forEach(t => {
+        if(q && !(t.label + t.desc + t.cat).toLowerCase().includes(q.toLowerCase())) return;
+        if(t.cat !== lastCat){ const c = document.createElement("div"); c.className = "tpl-cat"; c.textContent = t.cat; body.appendChild(c); lastCat = t.cat; }
+        const it = document.createElement("div"); it.className = "tpl-item";
+        it.innerHTML = `<b>${t.label}</b><span>${t.desc}</span>`;
+        it.onclick = () => { applyTemplate(t); };
+        body.appendChild(it);
+      });
+    };
+    search.oninput = () => render(search.value);
+    render("");
+  }
+  if(CFG.features.modes){
+    $("#tools-title").textContent = "🧠 أوضاع البحث والنقاش";
+    const note = document.createElement("div"); note.className = "tool-note";
+    note.innerHTML = "اختر أسلوب النقاش — يُدمج مع تعليمات النظام تلقائياً.";
+    body.appendChild(note);
+    CFG.modes.forEach(m => {
+      const it = document.createElement("div"); it.className = "mode-item" + (state.mode === m.id ? " on" : "");
+      it.innerHTML = `<span class="dot"></span><span>${m.label}</span>`;
+      it.onclick = () => { state.mode = m.id; buildTools(); };
+      body.appendChild(it);
+    });
+  }
+}
+function applyTemplate(t){
+  let p = t.prompt.replace(/\{LANGUAGE\}/g, $("#tpl-lang") ? $("#tpl-lang").value : "Python");
+  const ta = $("#input");
+  ta.value = p; ta.focus(); autoGrow();
+  if(t.temp != null){ settings.temp = t.temp; saveSettings(); }
+  toast("تم إدراج القالب — أكمل الفراغات {الأقواس} ثم أرسل");
+}
+function toast(msg){
+  const d = document.createElement("div");
+  d.style.cssText = "position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent)66;padding:10px 22px;border-radius:99px;font-size:13px;z-index:99";
+  d.textContent = msg; document.body.appendChild(d);
+  setTimeout(() => d.remove(), 2200);
+}
+
+/* ================= الشرائط السريعة ================= */
+function buildChips(){
+  const el = $("#chips"); el.innerHTML = "";
+  (CFG.chips || []).forEach(c => {
+    const b = document.createElement("button"); b.className = "chip" + (c.hot ? " hot" : "");
+    b.textContent = c.label;
+    b.onclick = () => {
+      if(c.action === "tools"){ toggleTools(true); return; }
+      const ta = $("#input");
+      ta.value = c.prompt.replace("{SELECTION}", ta.value.substring(ta.selectionStart, ta.selectionEnd));
+      ta.focus(); autoGrow();
+    };
+    el.appendChild(b);
+  });
+  if(CFG.features.templates){
+    const sel = document.createElement("select");
+    sel.id = "tpl-lang"; sel.className = "chip"; sel.style.cursor = "pointer";
+    ["Python","JavaScript","TypeScript","Java","C++","C#","Go","Rust","PHP","SQL","Bash","عربي فقط"].forEach(l => {
+      const o = document.createElement("option"); o.value = l === "عربي فقط" ? "AR" : l; o.textContent = l; sel.appendChild(o);
+    });
+    sel.value = "Python";
+    el.appendChild(sel);
+  }
+}
+function toggleTools(force){
+  const t = $("#tools");
+  const open = force !== undefined ? force : !t.classList.contains("open");
+  t.classList.toggle("open", open);
+}
+
+/* ================= تصدير ================= */
+function exportChat(){
+  const c = currentChat(); if(!c || !c.msgs.length) { toast("لا توجد محادثة للتصدير"); return; }
+  let md = `# ${c.title}\n\n> DevCompanion — رفيق المبرمج المحترف · تصدير محلي ${new Date().toLocaleString("ar")}\n\n`;
+  c.msgs.forEach(m => { md += (m.role === "user" ? "## 🧑 أنت\n\n" : "## " + CFG.icon + " " + CFG.brand + "\n\n") + m.content + "\n\n---\n\n"; });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([md], { type: "text/markdown" }));
+  a.download = c.title.replace(/[\\/:*?"<>|]/g, "_").slice(0, 40) + ".md";
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ================= الإعدادات (نافذة) ================= */
+function openSettings(){
+  $("#set-port").value = settings.port;
+  $("#set-temp").value = settings.temp; $("#tempval").textContent = settings.temp;
+  $("#set-maxtok").value = settings.maxtok;
+  $("#set-sys").value = settings.sys;
+  $("#set-think").checked = settings.showThink;
+  const ps = $("#privacy-settings"); ps.innerHTML = "";
+  if(CFG.features.docs){
+    ps.innerHTML = `
+      <div class="set-row"><label>الحد الأقصى لكل مستند (حرف)</label><input type="number" id="set-doclimit" min="2000" max="400000" step="1000" value="${settings.docLimit}"></div>
+      <div class="set-row"><label>الحد الأقصى الإجمالي للمستندات المرفقة (حرف)</label><input type="number" id="set-totlimit" min="2000" max="1000000" step="1000" value="${settings.totalLimit}"></div>
+      <div class="set-row"><label>حماية الخصوصية</label>
+        <div class="switchrow"><span class="lbl">إخفاء تلقائي للبريد/الهاتف/البطاقات/IBAN قبل الإرسال</span><input type="checkbox" id="set-redact" ${settings.redact?"checked":""}></div>
+      </div>`;
+  }
+  $("#overlay").classList.add("open");
+}
+function closeSettings(){ $("#overlay").classList.remove("open"); }
+
+/* ================= التهيئة ================= */
+function init(){
+  loadChats();
+  state.current = state.chats.length ? state.chats[state.chats.length-1].id : null;
+  renderChatList(); renderChat(); buildChips();
+  if(CFG.features.docs || CFG.features.templates || CFG.features.modes){
+    $("#toolsbtn").style.display = "";
+    buildTools();
+    if(window.innerWidth > 1300) toggleTools(true);   // لوحة الأدوات مفتوحة افتراضياً على الشاشات الواسعة
+  } else {
+    $("#toolsbtn").style.display = "none";
+  }
+  $("#sendbtn").onclick = send;
+  $("#stopbtn").onclick = () => { if(state.abort) state.abort.abort(); };
+  $("#exportbtn").onclick = exportChat;
+  $("#input").addEventListener("keydown", e => {
+    if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+  });
+  $("#input").addEventListener("input", autoGrow);
+  $("#newchat").onclick = newChat;
+  $("#settingsbtn").onclick = openSettings;
+  $("#setclose").onclick = closeSettings;
+  $("#overlay").addEventListener("click", e => { if(e.target.id === "overlay") closeSettings(); });
+  $("#set-temp").oninput = e => $("#tempval").textContent = e.target.value;
+  $("#set-save").onclick = () => {
+    settings.port = parseInt($("#set-port").value) || CFG.port;
+    settings.temp = parseFloat($("#set-temp").value);
+    settings.maxtok = parseInt($("#set-maxtok").value) || 2048;
+    settings.sys = $("#set-sys").value || CFG.systemPrompt;
+    settings.showThink = $("#set-think").checked;
+    if(CFG.features.docs){
+      settings.docLimit = parseInt($("#set-doclimit").value) || 60000;
+      settings.totalLimit = parseInt($("#set-totlimit").value) || 150000;
+      settings.redact = $("#set-redact").checked;
+    }
+    saveSettings(); closeSettings(); pingServer(); toast("✓ حُفظت الإعدادات");
+  };
+  $("#set-reset").onclick = () => { settings = Object.assign({}, DEFAULTS); saveSettings(); openSettings(); toast("أُعيدت الإعدادات الافتراضية"); };
+  $("#toolsbtn").onclick = () => toggleTools();
+  $("#toolsclose").onclick = () => toggleTools(false);
+  $("#burger").onclick = () => $("#sidebar").classList.toggle("hidden");
+  $("#statusbox").onclick = pingServer;
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape"){ closeSettings(); }
+    if((e.ctrlKey || e.metaKey) && e.key === "b"){ e.preventDefault(); $("#sidebar").classList.toggle("hidden"); }
+  });
+  pingServer();
+  setInterval(pingServer, 12000);
+}
+/* ================= تهيئة pdf.js (إن وُجدت — منتج المستندات) ================= */
+/* ملاحظة: worker pdf.js يُحمَّل كوسم script عادي أيضاً (vendor/pdf.worker.min.js)
+   فيتاح المعالج على الخيط الرئيسي — الحل المعتمد للعمل من file:// بلا شبكة */
+if (typeof window !== "undefined" && window.pdfjsLib) {
+  try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdf.worker.min.js"; } catch (e) {}
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

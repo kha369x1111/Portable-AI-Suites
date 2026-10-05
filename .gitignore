@@ -1,0 +1,23 @@
+# محرك llama.cpp (يُنزّه SETUP) — لا يُرفع للمستودع
+bin/win/
+bin/macos/
+bin/linux/
+bin/_*.zip
+bin/*.exe
+bin/llama-server*
+
+# نماذج GGUF (غيغابايتات — قائمة التنزيل في المستودع تكفي)
+models/*.gguf
+
+# سجلات التشغيل الحية
+logs/*.log
+logs/*.pid
+
+# مستندات المستخدم في حزمة الخصوصية
+data/documents/*
+!data/documents/اقرأني-ضع-مستنداتك-هنا.txt
+
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
